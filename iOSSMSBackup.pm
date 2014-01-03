@@ -156,7 +156,7 @@ sub print_title {
       day        => substr($date, 6, 2),
     );
     my $title = "<h1>Conversation with $number</h1><h3>";
-    $title .= $dt->day_name . ", " . $dt->month_name . " " . $dt->day . ", " . $dt->year . "</h3>";
+    $title .= $dt->day_name . " " . $dt->month_name . " " . $dt->day . ", " . $dt->year . "</h3>";
     $title .= "<h3>$texts texts</h3>";
     return $title;
 }
@@ -171,13 +171,14 @@ sub export_texts_for_number_and_date {
     
     open OUTFILE, ">$directory/$date.html";
     print OUTFILE $self->html_header;
+    print OUTFILE qq|<div class="content">|;
     print OUTFILE $self->print_title(scalar(@$texts), $number, $date);
     print OUTFILE qq|\n<div class="text_block">|;
     foreach my $text (@$texts){
         print OUTFILE qq|\n\t<div class="$text->{Type} text"><span class="rowid">$text->{RowID}</span>|;
     	print OUTFILE qq|<span class="time">$text->{Date}:</span><span class="message">$text->{Text}</span></div>|;
     }
-    print OUTFILE qq|</div>\n|;
+    print OUTFILE qq|</div></div>\n|;
     print OUTFILE $self->html_footer;
     close OUTFILE;
 }
