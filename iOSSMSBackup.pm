@@ -26,11 +26,14 @@ sub new
 sub export_messages {
     my ($self) = @_;
     $self->connect_db;
-    my $texts = $self->get_texts_for_phone_number_for_date('+17347758413', '20131216');
-    foreach my $text (@$texts) {
-          print "Row fetched ".$text->{'Filename'}."\n";
-    } 
-    
+    my $numbers = $self->get_phone_numbers();
+    foreach my $number (@$numbers){
+        my $dates = $self->get_dates_for_phone_number($number);
+        foreach my $date (@$dates){
+            print $number . " received messages on " . $date . "\n";
+            my $texts = $self->get_texts_for_phone_number_for_date($number, $date);
+        }
+    }
     return 1;
 }
 
@@ -43,6 +46,35 @@ sub connect_db {
         "",                          
         { RaiseError => 1 },         
     ) or die $DBI::errstr;
+}
+
+sub get_phone_numbers {
+    my ($self) = @_;
+    my $dbh = $self->{_sms_db};
+    my $query = qq|SELECT DISTINCT(id) FROM handle|;
+    my $sth = $dbh->prepare($query);
+    $sth->execute();
+    my $numbers = [];
+    while (my $number = $sth->fetchrow_hashref) {
+        push @$numbers, $number->{'id'};
+    }
+    return $numbers;
+}
+
+sub get_dates_for_phone_number {
+    my ($self, $number) = @_;
+    my $dbh = $self->{_sms_db};
+    my $query = qq|SELECT DISTINCT(strftime('%Y%m%d', date + 978307200, 'unixepoch', 'localtime')) AS date
+    		    FROM message m, handle h WHERE h.rowid = m.handle_id AND h.id = ?|;
+                    
+    my $sth = $dbh->prepare($query);
+    $sth->execute($number);
+    my $dates = [];
+    while (my $row = $sth->fetchrow_hashref()) {
+        push @$dates, $row->{'date'};
+    }
+    return $dates;
+    
 }
 
 sub get_texts_for_phone_number_for_date{
