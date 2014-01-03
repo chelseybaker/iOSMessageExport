@@ -6,6 +6,7 @@ package iOSSMSBackup;
 use DBI;
 use File::Copy;
 use DateTime;
+use Digest::SHA1  qw(sha1 sha1_hex sha1_base64);
 
 my $export_d = "_export";
 
@@ -36,15 +37,14 @@ sub export_messages {
         copy($self->{_second_css}, "_export/$self->{_second_css}");
     }
     
-    
     $self->connect_db;
     my $numbers = $self->get_phone_numbers();
     foreach my $number (@$numbers){
+        print "Exporting messages for $number\n";
         my $dates = $self->get_dates_for_phone_number($number);
         foreach my $date (@$dates){
             my $texts = $self->get_texts_for_phone_number_for_date($number, $date);
             $self->export_texts_for_number_and_date($texts, $number, $date);
-            print "exchanged ". (scalar @$texts) ." messages with ".$number." on " . $date . "\n";
         }
     }
     return 1;
@@ -161,6 +161,29 @@ sub print_title {
     return $title;
 }
 
+sub process_mms {
+    my ($self, $attachment_id, $number, $date) = @_;
+    my $dbh = $self->{_sms_db};
+    my $query = qq|SELECT * FROM attachment WHERE ROWID = ?|;
+    my $sth = $dbh->prepare($query);
+    $sth->execute($attachment_id);
+    my $attachment = $sth->fetchrow_hashref();
+    my $filepath = $attachment->{filename};
+    (my $filename = $filepath) =~ s{(.*)/(.*)}{$2}xms;
+    $filepath =~ s#^~/#MediaDomain-#;
+    my $sha1_filename = sha1_hex($filepath);
+    mkdir "$export_d/$number/$date" unless -d "$export_d/$number/$date";
+    copy ($self->{_backup_directory} . "/" . $sha1_filename, "$export_d/$number/$date/$filename");
+    
+    my $html = qq|<span class="text-warning"><a href="$date/$filename">Link to attachment</a></span>|;
+    if ($attachment->{mime_type} =~ /image/) {
+        $html = qq|<br/><a href="$date/$filename"><img class="mms" src="$date/$filename" /></a>|;
+    }
+    
+
+    return $html;
+}
+
 # meat of script
 sub export_texts_for_number_and_date {
     my ($self, $texts, $number, $date) = @_;
@@ -176,7 +199,11 @@ sub export_texts_for_number_and_date {
     print OUTFILE qq|\n<div class="text_block">|;
     foreach my $text (@$texts){
         print OUTFILE qq|\n\t<div class="$text->{Type} text"><span class="rowid">$text->{RowID}</span>|;
-    	print OUTFILE qq|<span class="time">$text->{Date}:</span><span class="message">$text->{Text}</span></div>|;
+    	print OUTFILE qq|<span class="time">$text->{Date}:</span><span class="message">$text->{Text}|;
+        if ($text->{attachment_id}) {
+            print OUTFILE $self->process_mms($text->{attachment_id}, $number, $date) if $text->{attachment_id};
+        }
+        print OUTFILE qq|</span></div>|;
     }
     print OUTFILE qq|</div></div>\n|;
     print OUTFILE $self->html_footer;
