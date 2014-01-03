@@ -12,10 +12,10 @@ my $export_d = "_export";
 
 sub new
 {
-    my $class = shift;
+    my ($class, $params) = @_;
     my $self = {
-        _backup_directory => shift,
-        _second_css => shift,
+        _backup_directory => $params->{backup_directory},
+        _second_css => $params->{css},
         _sms_db_filename => '3d0d7e5fb2ce288813306e4d4636395e047a3d28',
         _sms_db => undef
     };
@@ -94,7 +94,7 @@ sub get_texts_for_phone_number_for_date{
     my ($self, $number, $date) = @_;
     my $dbh = $self->{_sms_db};
     my $query = qq|
-                SELECT 
+        SELECT 
             m.rowid as RowID, 
             CASE is_from_me 
                 WHEN 0 THEN "received" 
@@ -120,6 +120,7 @@ sub get_texts_for_phone_number_for_date{
     my $sth = $dbh->prepare($query);
     $sth->execute($number, $date);
     my $texts = [];
+    
     while (my $row = $sth->fetchrow_hashref()) {
         push @$texts, $row;
     }
@@ -140,7 +141,6 @@ sub html_header{
         $header .= qq|<script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>|;
     $header .= qq|</head>\n<body>|;
     return $header;
-    
 }
 
 sub html_footer {
@@ -163,14 +163,17 @@ sub print_title {
 
 sub process_mms {
     my ($self, $attachment_id, $number, $date) = @_;
+    
     my $dbh = $self->{_sms_db};
     my $query = qq|SELECT * FROM attachment WHERE ROWID = ?|;
     my $sth = $dbh->prepare($query);
     $sth->execute($attachment_id);
+    
     my $attachment = $sth->fetchrow_hashref();
     my $filepath = $attachment->{filename};
     (my $filename = $filepath) =~ s{(.*)/(.*)}{$2}xms;
     $filepath =~ s#^~/#MediaDomain-#;
+    
     my $sha1_filename = sha1_hex($filepath);
     mkdir "$export_d/$number/$date" unless -d "$export_d/$number/$date";
     copy ($self->{_backup_directory} . "/" . $sha1_filename, "$export_d/$number/$date/$filename");
@@ -184,7 +187,6 @@ sub process_mms {
     return $html;
 }
 
-# meat of script
 sub export_texts_for_number_and_date {
     my ($self, $texts, $number, $date) = @_;
     
