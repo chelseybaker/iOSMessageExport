@@ -4,12 +4,17 @@ package iOSSMSBackup;
 #our @EXPORT_OK = qw(new get_sms_db_filename);
 
 use DBI;
+use File::Copy;
+use DateTime;
+
+my $export_d = "_export";
 
 sub new
 {
     my $class = shift;
     my $self = {
         _backup_directory => shift,
+        _second_css => shift,
         _sms_db_filename => '3d0d7e5fb2ce288813306e4d4636395e047a3d28',
         _sms_db => undef
     };
@@ -25,13 +30,21 @@ sub new
 
 sub export_messages {
     my ($self) = @_;
+    
+    mkdir "_export" unless -d "_export";
+    if ($self->{_second_css}) {
+        copy($self->{_second_css}, "_export/$self->{_second_css}");
+    }
+    
+    
     $self->connect_db;
     my $numbers = $self->get_phone_numbers();
     foreach my $number (@$numbers){
         my $dates = $self->get_dates_for_phone_number($number);
         foreach my $date (@$dates){
-            print $number . " received messages on " . $date . "\n";
             my $texts = $self->get_texts_for_phone_number_for_date($number, $date);
+            $self->export_texts_for_number_and_date($texts, $number, $date);
+            print "exchanged ". (scalar @$texts) ." messages with ".$number." on " . $date . "\n";
         }
     }
     return 1;
@@ -112,5 +125,62 @@ sub get_texts_for_phone_number_for_date{
     }
     return $texts;
 }
+
+sub format_number{
+    my ($self, $number) = @_;
+    $number =~ s/^[1+]//g;
+    return $number;
+}
+
+sub html_header{
+    my ($self) = @_;
+    my $header = qq|<!DOCTYPE html><html lang="en"><head>
+        <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">|;
+        $header .= qq|<link href="../|.$self->{_second_css}.qq|" rel="stylesheet" type="text/css" />| if $self->{_second_css};
+        $header .= qq|<script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>|;
+    $header .= qq|</head>\n<body>|;
+    return $header;
+    
+}
+
+sub html_footer {
+    my ($self) = @_;
+    return qq|</body></html>|;
+}
+
+sub print_title {
+    my ($self, $texts, $number, $date) = @_;
+    my $dt = DateTime->new(
+      year       => substr($date, 0, 4),
+      month      => substr($date, 4, 2),
+      day        => substr($date, 6, 2),
+    );
+    my $title = "<h1>Conversation with $number</h1><h3>";
+    $title .= $dt->day_name . ", " . $dt->month_name . " " . $dt->day . ", " . $dt->year . "</h3>";
+    $title .= "<h3>$texts texts</h3>";
+    return $title;
+}
+
+# meat of script
+sub export_texts_for_number_and_date {
+    my ($self, $texts, $number, $date) = @_;
+    
+    $number = $self->format_number($number);
+    my $directory = "$export_d/$number";
+    mkdir $directory unless -d $directory;
+    
+    open OUTFILE, ">$directory/$date.html";
+    print OUTFILE $self->html_header;
+    print OUTFILE $self->print_title(scalar(@$texts), $number, $date);
+    print OUTFILE qq|\n<div class="text_block">|;
+    foreach my $text (@$texts){
+        print OUTFILE qq|\n\t<div class="$text->{Type} text"><span class="rowid">$text->{RowID}</span>|;
+    	print OUTFILE qq|<span class="time">$text->{Date}:</span><span class="message">$text->{Text}</span></div>|;
+    }
+    print OUTFILE qq|</div>\n|;
+    print OUTFILE $self->html_footer;
+    close OUTFILE;
+}
+
 
 1; 
