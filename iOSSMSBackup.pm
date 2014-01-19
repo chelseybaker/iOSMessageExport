@@ -136,6 +136,7 @@ sub format_number{
 sub html_header{
     my ($self) = @_;
     my $header = qq|<!DOCTYPE html><html lang="en"><head>
+        <meta charset="utf-8" />
         <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">|;
         $header .= qq|<link href="../|.$self->{_second_css}.qq|" rel="stylesheet" type="text/css" />| if $self->{_second_css};
         $header .= qq|<script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>|;
