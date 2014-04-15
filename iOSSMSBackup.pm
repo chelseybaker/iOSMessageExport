@@ -8,16 +8,19 @@ use File::Copy;
 use DateTime;
 use Digest::SHA1  qw(sha1 sha1_hex sha1_base64);
 
-my $export_d = "_export";
-
 sub new
 {
     my ($class, $params) = @_;
     my $self = {
         _backup_directory => $params->{backup_directory},
         _second_css => $params->{css},
+        _export_directory => $params->{export_directory},
         _sms_db_filename => '3d0d7e5fb2ce288813306e4d4636395e047a3d28',
         _sms_db => undef
+    };
+    
+    unless ($self->{_export_directory}) {
+        $self->{_export_directory} = 'messages';
     };
     
     unless (-d $self->{_backup_directory}){
@@ -32,9 +35,9 @@ sub new
 sub export_messages {
     my ($self) = @_;
     
-    mkdir "_export" unless -d "_export";
+    mkdir "$self->{_export_directory}" unless -d "$self->{_export_directory}";
     if ($self->{_second_css}) {
-        copy($self->{_second_css}, "_export/$self->{_second_css}");
+        copy($self->{_second_css}, "$self->{_export_directory}/$self->{_second_css}");
     }
     
     $self->connect_db;
@@ -176,8 +179,8 @@ sub process_mms {
     $filepath =~ s#^~/#MediaDomain-#;
     
     my $sha1_filename = sha1_hex($filepath);
-    mkdir "$export_d/$number/$date" unless -d "$export_d/$number/$date";
-    copy ($self->{_backup_directory} . "/" . $sha1_filename, "$export_d/$number/$date/$filename");
+    mkdir "$self->{_export_directory}/$number/$date" unless -d "$self->{_export_directory}/$number/$date";
+    copy ($self->{_backup_directory} . "/" . $sha1_filename, "$self->{_export_directory}/$number/$date/$filename");
     
     my $html = qq|<span class="text-warning"><a href="$date/$filename">Link to attachment</a></span>|;
     if ($attachment->{mime_type} =~ /image/) {
@@ -192,7 +195,7 @@ sub export_texts_for_number_and_date {
     my ($self, $texts, $number, $date) = @_;
     
     $number = $self->format_number($number);
-    my $directory = "$export_d/$number";
+    my $directory = "$self->{_export_directory}/$number";
     mkdir $directory unless -d $directory;
     
     open OUTFILE, ">$directory/$date.html";
@@ -215,3 +218,4 @@ sub export_texts_for_number_and_date {
 
 
 1; 
+
