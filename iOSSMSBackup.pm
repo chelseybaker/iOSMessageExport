@@ -15,7 +15,7 @@ sub new
     my ($class, $params) = @_;
     my $self = {
         _backup_directory => $params->{backup_directory},
-        _second_css => $params->{css},
+        _second_css => $params->{css} || "style.css",
         _sms_db_filename => '3d0d7e5fb2ce288813306e4d4636395e047a3d28',
         _sms_db => undef
     };
