@@ -21,7 +21,7 @@ sub new
     };
     
     unless (-d $self->{_backup_directory}){
-        return undef;
+        die 'Directory does not exist';
     }
     
     bless $self, $class;
