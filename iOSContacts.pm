@@ -45,7 +45,6 @@ sub _generate_contacts {
 
 sub get_contacts{
     my ($self) = @_;
-    print Dumper $self->{_contacts};
     return $self->{_contacts};
 }
 
