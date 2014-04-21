@@ -1,3 +1,7 @@
+div {border:2px solid;border-color:transparent;
+border-radius:25px;}
 .title_header{font-size:24px;padding:10px;}
-.received{background-color:purple;}
-.content{width:85%;margin:auto;}
+.received{margin-bottom:10px;background-color:#dddddd; text-align:left; margin-right:40px;padding-left:10px;padding-right:10px;}
+.sent{margin-bottom:10px;margin-left:40px;text-align:right;background-color:#66CCCC;padding-left:10px;padding-right:10px;}
+.content{width:85%;margin:auto; min-width:600px;}
+.texts{width:50%; margin:auto;}
