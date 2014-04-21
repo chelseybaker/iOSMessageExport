@@ -45,8 +45,6 @@ sub export_messages {
         mkdir "_export/$number" unless -d "$export_d/$number";
 
         foreach my $date (keys %{$messages->{$number}}){
-            mkdir "_export/$number/$date" unless -d "_export/$number/$date";
-            print "Contact is ";
             print Dumper$contacts->{$number};
             $self->create_html_file_for($number, $date, $messages->{$number}->{$date}, $contacts->{$number});
         }
@@ -56,7 +54,7 @@ sub export_messages {
 
 sub create_html_file_for{
     my ($self, $number, $date, $texts, $contact_info) = @_;
-    open OUTFILE, ">_export/$number/$date/$date.html";
+    open OUTFILE, ">_export/$number/$date.html";
     print OUTFILE $self->html_header();
     
     my $title = qq|<div class="title_header">Texts with |;
@@ -88,7 +86,7 @@ sub html_header{
     my $header = qq|<!DOCTYPE html><html lang="en"><head>
         <meta charset="utf-8" />
         <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">|;
-        $header .= qq|<link href="../../style.css" rel="stylesheet" type="text/css" />|;
+        $header .= qq|<link href="../style.css" rel="stylesheet" type="text/css" />|;
         $header .= qq|<script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>|;
     $header .= qq|</head>\n<body>\n<div class="content">|;
     return $header;
