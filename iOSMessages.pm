@@ -69,7 +69,7 @@ sub _generate_messages_hash {
         LEFT JOIN handle h ON h.rowid = m.handle_id
         LEFT JOIN message_attachment_join maj
         ON maj.message_id = m.rowid
-        ORDER BY UniqueID, Date, Time LIMIT 40|;
+        ORDER BY UniqueID, Date, Time LIMIT 80|;
     my $sth = $dbh->prepare($query);
     $sth->execute();
     
@@ -78,7 +78,9 @@ sub _generate_messages_hash {
     while (my $text = $sth->fetchrow_hashref){
         if (my $uniqueID = $text->{'UniqueID'}) {
             my $uniqueID = $text->{'UniqueID'};
-            push @{$tempMessages->{$uniqueID}}, $text;
+            if ($date = $text->{'Date'}) {
+                push @{$tempMessages->{$uniqueID}->{$date}}, $text;
+            }
         }
     }
     $self->{_messages} = $tempMessages;
