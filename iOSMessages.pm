@@ -72,6 +72,10 @@ sub _generate_messages_hash {
                 WHEN date > 0 THEN strftime('%Y%m%d', date + 978307200, 'unixepoch', 'localtime')
                 ELSE NULL
             END as Date, 
+            CASE 
+                WHEN date > 0 THEN date + 978307200
+                ELSE NULL
+            END as Epoch, 
             text as Text,
             maj.attachment_id AS AttachmentID
         FROM message m
