@@ -63,7 +63,7 @@ sub html_texts{
     my $html = "";
 
     foreach my $text (@$texts){
-        $html.= qq|<div class="|.$text->{'Type'}.qq|">|.$text->{'Text'} . "</div>\n";
+        $html.= qq|<div id="|.$text->{'RowID'}.qq|" class="|.$text->{'Type'}.qq|">|.$text->{'Text'} . "</div>\n";
     }
     return $html;
 }
