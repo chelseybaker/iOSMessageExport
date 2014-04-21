@@ -23,13 +23,14 @@ sub new
     }
     
     bless $self, $class;
-    print "Backup direcotry is ".$self->{_backup_directory}."\n";
-    print "Sms direcotry is ".$self->{_contacts_db_filename}."\n";
+    $self->_generate_contacts();
     return $self;
 }
 
-sub get_contacts {
+sub _generate_contacts {
     my ($self) = @_;
+    return $self->{_contacts} if (defined $self->{_contacts});
+
     my $dbh = $self->connect_db();
     my $sql = qq|SELECT First, Last, value FROM ABMultiValue, ABPerson WHERE record_id = ROWID AND value is not null|;
     my $sth = $dbh->prepare($sql);
@@ -40,6 +41,11 @@ sub get_contacts {
         $numbers->{$unique_id} = {'first_name' => $number->{'First'}, 'last_name' => $number->{'Last'}};
     } 
     $self->{_contacts} = $numbers;
+}
+
+sub get_contacts{
+    my ($self) = @_;
+    print Dumper $self->{_contacts};
     return $self->{_contacts};
 }
 

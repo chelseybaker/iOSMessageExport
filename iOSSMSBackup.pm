@@ -5,6 +5,8 @@ use File::Copy;
 use DateTime;
 use Digest::SHA1  qw(sha1 sha1_hex sha1_base64);
 use iOSMessages;
+use iOSContacts;
+use Data::Dumper;
 
 my $export_d = "_export";
 
@@ -35,24 +37,37 @@ sub export_messages {
     my $ios_messages = iOSMessages->new({backup_directory => $self->{_backup_directory}});
     my $messages = $ios_messages->get_messages;
     my $attachments = $ios_messages->get_attachments;
+    my $contact_list = iOSContacts->new({backup_directory => $self->{_backup_directory}});
+    my $contacts = $contact_list->get_contacts();
     foreach my $number (keys %$messages){
-        print "Exporting messages for $number\n";
+        #print "Exporting messages for $number\n";
 	    
         mkdir "_export/$number" unless -d "$export_d/$number";
 
         foreach my $date (keys %{$messages->{$number}}){
             mkdir "_export/$number/$date" unless -d "_export/$number/$date";
-            $self->create_html_file_for($number, $date, $messages->{$number}->{$date});
+            print "Contact is ";
+            print Dumper$contacts->{$number};
+            $self->create_html_file_for($number, $date, $messages->{$number}->{$date}, $contacts->{$number});
         }
     }
     return 1;
 }
 
 sub create_html_file_for{
-    my ($self, $number, $date, $texts) = @_;
+    my ($self, $number, $date, $texts, $contact_info) = @_;
     open OUTFILE, ">_export/$number/$date/$date.html";
     print OUTFILE $self->html_header();
-    print OUTFILE qq|<div class="title_header">Texts for $number on $date</div>|;
+    
+    my $title = qq|<div class="title_header">Texts with |;
+    if ($contact_info && ($contact_info->{'first_name'} || $contact_info->{'last_name'})){
+        $title .= $contact_info->{'first_name'} . " " . $contact_info->{'last_name'};
+    } else {
+        $title .= $number;
+    }
+    $title .= qq|</div>|;
+    print OUTFILE $title;
+
     print OUTFILE $self->html_texts($texts);
     print OUTFILE $self->html_footer();
     close OUTFILE;
