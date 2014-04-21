@@ -56,12 +56,15 @@ sub create_html_file_for{
     open OUTFILE, ">_export/$number/$date.html";
     print OUTFILE $self->html_header();
     
-    my $title = qq|<div class="title_header">Texts with |;
+    my $title = qq|<div class="title_header">|;
     if ($contact_info && ($contact_info->{'first_name'} || $contact_info->{'last_name'})){
         $title .= $contact_info->{'first_name'} . " " . $contact_info->{'last_name'};
     } else {
         $title .= $number;
     }
+    $title .= " on ";    
+    my $dateTime = DateTime->from_epoch(epoch=>$texts->[0]->{'Epoch'});
+    $title .= $dateTime->day_name() .", ". $dateTime->month_name() . " " . $dateTime->day() . ", " . $dateTime->year();
     $title .= qq|</div>|;
     print OUTFILE $title;
     print OUTFILE qq|<div class="texts">|;
@@ -76,7 +79,7 @@ sub html_texts{
     my $html = "";
 
     foreach my $text (@$texts){
-        $html.= qq|<div id="|.$text->{'RowID'}.qq|" class="|.$text->{'Type'}.qq|">|.$text->{'Text'} . "</div>\n";
+        $html.= qq|<div id="|.$text->{'RowID'}.qq|" class="|.$text->{'Type'}.qq|"><div class="time">|.$text->{'Time'}.qq|</div><div class="text">|.$text->{'Text'} . "</div></div>\n";
     }
     return $html;
 }
