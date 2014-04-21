@@ -64,8 +64,9 @@ sub create_html_file_for{
     }
     $title .= qq|</div>|;
     print OUTFILE $title;
-
+    print OUTFILE qq|<div class="texts">|;
     print OUTFILE $self->html_texts($texts);
+    print OUTFILE qq|</div>|;
     print OUTFILE $self->html_footer();
     close OUTFILE;
 }
