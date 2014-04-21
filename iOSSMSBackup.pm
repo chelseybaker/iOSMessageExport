@@ -40,12 +40,11 @@ sub export_messages {
     my $contact_list = iOSContacts->new({backup_directory => $self->{_backup_directory}});
     my $contacts = $contact_list->get_contacts();
     foreach my $number (keys %$messages){
-        #print "Exporting messages for $number\n";
+        print "Exporting messages for $number\n";
 	    
         mkdir "_export/$number" unless -d "$export_d/$number";
 
         foreach my $date (keys %{$messages->{$number}}){
-            print Dumper$contacts->{$number};
             $self->create_html_file_for($number, $date, $messages->{$number}->{$date}, $contacts->{$number});
         }
     }
@@ -167,9 +166,14 @@ sub _create_css_file{
     my ($self) = @_;
 
     if (!(-e "_export/style.css")){
-        open OUTFILE, ">_export/style.css";
-        print OUTFILE ".received {background-color:purple;}\n.sent{background-color:gray}";
-        close OUTFILE;
+        if (-e "style.css"){
+            copy("style.css", "_export/style.css");
+        }else{
+            open OUTFILE, ">_export/style.css";
+            print OUTFILE ".received {background-color:purple;}\n.sent{background-color:gray}";
+            close OUTFILE;
+        }
+        
     }
 }
 
