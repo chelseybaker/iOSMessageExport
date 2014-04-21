@@ -6,7 +6,7 @@ package iOSContacts;
 use DBI;
 use Digest::SHA1  qw(sha1 sha1_hex sha1_base64);
 use Data::Dumper;
- use Term::ANSIColor;
+use Term::ANSIColor;
 
 sub new
 {
@@ -41,6 +41,13 @@ sub get_contacts {
     } 
     $self->{_contacts} = $numbers;
     return $self->{_contacts};
+}
+
+sub get_contact_for_unique_id {
+    my ($self, $unique_id) = @_;
+    $unique_id = $self->normalize_unique_value($unique_id);
+    my $contact = $self->{_contacts}->{$unique_id};
+    return $contact;
 }
 
 # Internal methods 
@@ -81,4 +88,4 @@ sub normalize_unique_value{
         #print color 'reset';
     }
 }
-1; 
+return 1; 
