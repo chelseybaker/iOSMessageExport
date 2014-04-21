@@ -13,7 +13,6 @@ sub new
     my ($class, $params) = @_;
     my $self = {
         _backup_directory => $params->{backup_directory},
-        _second_css => $params->{css} || "style.css",
         _sms_db => undef
     };
     
@@ -28,22 +27,45 @@ sub new
 
 sub export_messages {
     my ($self) = @_;
-    
+  
     mkdir "_export" unless -d "_export";
-    if ($self->{_second_css}) {
-        copy($self->{_second_css}, "_export/$self->{_second_css}");
-    }
+
+    $self->_create_css_file();
    
     my $ios_messages = iOSMessages->new({backup_directory => $self->{_backup_directory}});
     my $messages = $ios_messages->get_messages;
+    my $attachments = $ios_messages->get_attachments;
     foreach my $number (keys %$messages){
         print "Exporting messages for $number\n";
-	$dates = (keys %$messages);
-        foreach my $date (@$dates){
-            print "Date is $date\n";
+	    
+        mkdir "_export/$number" unless -d "$export_d/$number";
+
+        foreach my $date (keys %{$messages->{$number}}){
+            mkdir "_export/$number/$date" unless -d "_export/$number/$date";
+            $self->create_html_file_for($number, $date, $messages->{$number}->{$date});
         }
     }
     return 1;
+}
+
+sub create_html_file_for{
+    my ($self, $number, $date, $texts) = @_;
+    open OUTFILE, ">_export/$number/$date/$date.html";
+    print OUTFILE $self->html_header();
+    print OUTFILE qq|<div class="title_header">Texts for $number on $date</div>|;
+    print OUTFILE $self->html_texts($texts);
+    print OUTFILE $self->html_footer();
+    close OUTFILE;
+}
+
+sub html_texts{
+    my ($self, $texts) = @_;
+    my $html = "";
+
+    foreach my $text (@$texts){
+        $html.= qq|<div class="|.$text->{'Type'}.qq|">|.$text->{'Text'} . "</div>\n";
+    }
+    return $html;
 }
 
 sub html_header{
@@ -51,15 +73,15 @@ sub html_header{
     my $header = qq|<!DOCTYPE html><html lang="en"><head>
         <meta charset="utf-8" />
         <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">|;
-        $header .= qq|<link href="../|.$self->{_second_css}.qq|" rel="stylesheet" type="text/css" />| if $self->{_second_css};
+        $header .= qq|<link href="../../style.css" rel="stylesheet" type="text/css" />|;
         $header .= qq|<script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>|;
-    $header .= qq|</head>\n<body>|;
+    $header .= qq|</head>\n<body>\n<div class="content">|;
     return $header;
 }
 
 sub html_footer {
     my ($self) = @_;
-    return qq|</body></html>|;
+    return qq|</div></body></html>|;
 }
 
 sub print_title {
@@ -128,5 +150,14 @@ sub export_texts_for_number_and_date {
     close OUTFILE;
 }
 
+sub _create_css_file{
+    my ($self) = @_;
+
+    if (!(-e "_export/style.css")){
+        open OUTFILE, ">_export/style.css";
+        print OUTFILE ".received {background-color:purple;};\n.sent{background-color:grey};";
+        close OUTFILE;
+    }
+}
 
 1; 

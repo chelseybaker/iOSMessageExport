@@ -98,8 +98,6 @@ sub _generate_messages_hash {
         }
     }
     $self->{_messages} = $tempMessages;
-    #print Dumper $tempMessages;
-    print Dumper $self->{_attachments};
 }
 
 sub _process_mms {
