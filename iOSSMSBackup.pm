@@ -155,7 +155,7 @@ sub _create_css_file{
 
     if (!(-e "_export/style.css")){
         open OUTFILE, ">_export/style.css";
-        print OUTFILE ".received {background-color:purple;};\n.sent{background-color:grey};";
+        print OUTFILE ".received {background-color:purple;}\n.sent{background-color:gray}";
         close OUTFILE;
     }
 }
