@@ -2,6 +2,8 @@ package iOSMessages;
 
 use DBI;
 use Data::Dumper;
+use Digest::SHA1  qw(sha1 sha1_hex sha1_base64);
+
 
 sub new
 {
@@ -10,7 +12,8 @@ sub new
         _backup_directory => $params->{backup_directory},
         _sms_db_filename => '3d0d7e5fb2ce288813306e4d4636395e047a3d28',
         _sms_db => undef,
-        _messages => {}
+        _messages => {},
+        _attachments => {}
     };
 
     unless (-d $self->{_backup_directory}){
@@ -19,12 +22,18 @@ sub new
     }
     
     bless $self, $class;
+    $self->_generate_messages_hash();
     return $self;
 }
 
 sub get_messages{
     my ($self) = @_;
-    $self->_generate_messages_hash;
+    return $self->{_messages};
+}
+
+sub get_attachments{
+    my ($self) = @_;
+    return $self->{_attachments};
 }
 
 # Internal methods 
@@ -64,12 +73,12 @@ sub _generate_messages_hash {
                 ELSE NULL
             END as Date, 
             text as Text,
-            maj.attachment_id 
+            maj.attachment_id AS AttachmentID
         FROM message m
         LEFT JOIN handle h ON h.rowid = m.handle_id
         LEFT JOIN message_attachment_join maj
         ON maj.message_id = m.rowid
-        ORDER BY UniqueID, Date, Time LIMIT 80|;
+        ORDER BY UniqueID, Date, Time|;
     my $sth = $dbh->prepare($query);
     $sth->execute();
     
@@ -81,10 +90,34 @@ sub _generate_messages_hash {
             if ($date = $text->{'Date'}) {
                 push @{$tempMessages->{$uniqueID}->{$date}}, $text;
             }
+            
+            if ($text->{'AttachmentID'}) {
+                $self->_process_mms($text->{'AttachmentID'});
+            }
+            
         }
     }
     $self->{_messages} = $tempMessages;
-    print Dumper $tempMessages; 
+    #print Dumper $tempMessages;
+    print Dumper $self->{_attachments};
 }
+
+sub _process_mms {
+    my ($self, $attachment_id) = @_;
+    
+    my $dbh = $self->{_sms_db};
+    my $query = qq|SELECT * FROM attachment WHERE ROWID = ?|;
+    my $sth = $dbh->prepare($query);
+    $sth->execute($attachment_id);
+    
+    my $attachment = $sth->fetchrow_hashref();
+    my $filepath = $attachment->{filename};
+    (my $filename = $filepath) =~ s{(.*)/(.*)}{$2}xms;
+    $filepath =~ s#^~/#MediaDomain-#;
+    
+    my $sha1_filename = sha1_hex($filepath);
+    $self->{_attachments}->{$attachment_id} = {sha1_filename => $sha1_filename, filename => $filename};
+}
+
 
 1;
