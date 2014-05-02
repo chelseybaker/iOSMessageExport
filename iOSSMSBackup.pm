@@ -98,7 +98,7 @@ sub _process_mms {
     mkdir $directory unless -d $directory;
     my $html = "";
     if ((defined $self->{_attachments}->{$attachmentID}) && (my $attachment = $self->{_attachments}->{$attachmentID})){
-        copy($self->{_backup_directory}.$attachment->{'sha1_filename'}, $directory."/".$attachment->{'filename'}) or die "Copy failed";
+        copy($self->{_backup_directory}.$attachment->{'sha1_filename'}, $directory."/".$attachment->{'filename'}) or "Copy failed for file ".$self->{_backup_directory}.$attachment->{'sha1_filename'}."\n";
         if ($attachment->{'mime_type'} =~ /^image/) {
             $html = qq|<img src="|."$date/".$attachment->{'filename'}.qq|"/>|;
         } elsif ($attachment->{'mime_type'} =~ /^video/) {
