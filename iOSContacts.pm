@@ -67,7 +67,6 @@ sub connect_db {
         "",                          
         { RaiseError => 1 },         
     ) or die $DBI::errstr;
-    print "Successfully connected to contacts database:" . $self->{_backup_directory}.$self->{_contacts_db_filename}."\n";
     return $self->{_contacts_db};
 }
 
