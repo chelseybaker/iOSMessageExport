@@ -38,11 +38,10 @@ sub export_messages {
     my $ios_messages = iOSMessages->new({backup_directory => $self->{_backup_directory}});
     my $messages = $ios_messages->get_messages;
     $self->{_attachments} = $ios_messages->get_attachments;
-    print Dumper $self->{_attachments};
     my $contact_list = iOSContacts->new({backup_directory => $self->{_backup_directory}});
     my $contacts = $contact_list->get_contacts();
     foreach my $number (keys %$messages){
-        print "Exporting messages for $number\n";
+        #print "Exporting messages for $number\n";
 	    
         mkdir "_export/$number" unless -d "$export_d/$number";
 
@@ -98,9 +97,16 @@ sub _process_mms {
     my $directory = "_export/$number/$date";
     mkdir $directory unless -d $directory;
     my $html = "";
-    print $date . "\n";
     if ((defined $self->{_attachments}->{$attachmentID}) && (my $attachment = $self->{_attachments}->{$attachmentID})){
         copy($self->{_backup_directory}.$attachment->{'sha1_filename'}, $directory."/".$attachment->{'filename'}) or die "Copy failed";
+        if ($attachment->{'mime_type'} =~ /^image/) {
+            $html = qq|<img src="|."$date/".$attachment->{'filename'}.qq|"/>|;
+        } elsif ($attachment->{'mime_type'} =~ /^video/) {
+            $html = qq|<video controls><source src="|."$date/".$attachment->{'filename'}.qq|"></video>|;
+        } else { 
+            print "MIME TYPE IS ".$attachment->{'mime_type'}."\n";
+            $html = qq|<a href="|."$date/".$attachment->{'filename'}.qq|">Attachment</a>|;
+        }
     }
     return $html;
 }
@@ -133,34 +139,6 @@ sub print_title {
     $title .= "<h3>$texts texts</h3>";
     return $title;
 }
-
-=pod
-sub process_mms {
-    my ($self, $attachment_id, $number, $date) = @_;
-    
-    my $dbh = $self->{_sms_db};
-    my $query = qq|SELECT * FROM attachment WHERE ROWID = ?|;
-    my $sth = $dbh->prepare($query);
-    $sth->execute($attachment_id);
-    
-    my $attachment = $sth->fetchrow_hashref();
-    my $filepath = $attachment->{filename};
-    (my $filename = $filepath) =~ s{(.*)/(.*)}{$2}xms;
-    $filepath =~ s#^~/#MediaDomain-#;
-    
-    my $sha1_filename = sha1_hex($filepath);
-    mkdir "$export_d/$number/$date" unless -d "$export_d/$number/$date";
-    copy ($self->{_backup_directory} . "/" . $sha1_filename, "$export_d/$number/$date/$filename");
-    
-    my $html = qq|<span class="text-warning"><a href="$date/$filename">Link to attachment</a></span>|;
-    if ($attachment->{mime_type} =~ /image/) {
-        $html = qq|<br/><a href="$date/$filename"><img class="mms" src="$date/$filename" /></a>|;
-    }
-    
-
-    return $html;
-}
-=cut
 
 sub export_texts_for_number_and_date {
     my ($self, $texts, $number, $date) = @_;

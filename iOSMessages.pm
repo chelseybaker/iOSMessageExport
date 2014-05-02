@@ -118,7 +118,11 @@ sub _process_mms {
     $filepath =~ s#^~/#MediaDomain-#;
     
     my $sha1_filename = sha1_hex($filepath);
-    $self->{_attachments}->{$attachment_id} = {sha1_filename => $sha1_filename, filename => $filename};
+    $self->{_attachments}->{$attachment_id} = {
+        sha1_filename => $sha1_filename, 
+        filename => $filename, 
+        mime_type => $attachment->{mime_type}
+    };
 }
 
 
