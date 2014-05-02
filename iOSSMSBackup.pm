@@ -7,7 +7,6 @@ use Digest::SHA1  qw(sha1 sha1_hex sha1_base64);
 use iOSMessages;
 use iOSContacts;
 use Data::Dumper;
-use Cwd;
 
 my $export_d = "_export";
 
@@ -167,8 +166,7 @@ sub export_texts_for_number_and_date {
 
 sub _create_css_file{
     my ($self) = @_;
-    my $css_file = getcwd();
-    $css_file .= "/style.css";
+    $css_file .= "iOSMessageExport/style.css";
     if (!(-e "_export/style.css")){
         if (-e $css_file){
             copy($css_file, "_export/style.css");
