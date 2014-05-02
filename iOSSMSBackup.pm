@@ -105,7 +105,6 @@ sub _process_mms {
         } elsif ($attachment->{'mime_type'} =~ /^video/) {
             $html = qq|<video controls><source src="|."$date/".$attachment->{'filename'}.qq|"></video>|;
         } else { 
-            print "MIME TYPE IS ".$attachment->{'mime_type'}."\n";
             $html = qq|<a href="|."$date/".$attachment->{'filename'}.qq|">Attachment</a>|;
         }
     }
