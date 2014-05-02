@@ -6,6 +6,7 @@ Notes
 
 * Emojis would only show up when viewing the pages in Safari. 
 * Images and videos are visible within the message threads, but all other content is linked. 
+* Files are overwritten without checking to see if one already exists. 
 
 Basic steps: 
 
@@ -16,6 +17,7 @@ Basic steps:
 2. Add this repository to your ~/Desktop/iOSBackup directory 
     ```
     cd ~/Desktop/iOSBackup
+
     git clone git@github.com:chelseybaker/iOSMessageExport.git
     ```
 3. I reccomend copying your iTunes backup into your ~/Desktop/iOSBackup folder, just in case something bad happens (as I am not responsible for your misfortunes). Run backup.pl passing the backup directory. 
