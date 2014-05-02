@@ -8,6 +8,7 @@ Notes
 * Emojis would only show up when viewing the pages in Safari. 
 * Images and videos are visible within the message threads, but all other content is linked. 
 * Files are overwritten without checking to see if one already exists. 
+* If you get an error about the DateTime module, please see this CPAN article on installing modules: http://www.cpan.org/modules/INSTALL.html
 
 Basic steps: 
 
