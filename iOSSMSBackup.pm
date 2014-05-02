@@ -15,7 +15,8 @@ sub new
     my ($class, $params) = @_;
     my $self = {
         _backup_directory => $params->{backup_directory},
-        _sms_db => undef
+        _sms_db => undef,
+        _attachments => {}
     };
     
     unless (-d $self->{_backup_directory}){
@@ -36,7 +37,8 @@ sub export_messages {
    
     my $ios_messages = iOSMessages->new({backup_directory => $self->{_backup_directory}});
     my $messages = $ios_messages->get_messages;
-    my $attachments = $ios_messages->get_attachments;
+    $self->{_attachments} = $ios_messages->get_attachments;
+    print Dumper $self->{_attachments};
     my $contact_list = iOSContacts->new({backup_directory => $self->{_backup_directory}});
     my $contacts = $contact_list->get_contacts();
     foreach my $number (keys %$messages){
@@ -79,7 +81,26 @@ sub html_texts{
     my $html = "";
 
     foreach my $text (@$texts){
-        $html.= qq|<div id="|.$text->{'RowID'}.qq|" class="|.$text->{'Type'}.qq|"><div class="time">|.$text->{'Time'}.qq|</div><div class="text">|.$text->{'Text'} . "</div></div>\n";
+        $html .= qq|<div id="|.$text->{'RowID'}.qq|" class="|.$text->{'Type'}.qq|">|;
+        $html .= qq|<div class="time">|.$text->{'Time'}.qq|</div>|;
+        $html .= qq|<div class="text">|.$text->{'Text'} . qq|</div>|;
+        $html .= $self->_process_mms($text) if $text->{'AttachmentID'};
+        $html .= "</div>\n";
+    }
+    return $html;
+}
+
+sub _process_mms {
+    my ($self, $text) = @_;
+    my $attachmentID = $text->{'AttachmentID'};
+    my $date = $text->{'Date'};
+    my $number = $text->{'UniqueID'};
+    my $directory = "_export/$number/$date";
+    mkdir $directory unless -d $directory;
+    my $html = "";
+    print $date . "\n";
+    if ((defined $self->{_attachments}->{$attachmentID}) && (my $attachment = $self->{_attachments}->{$attachmentID})){
+        copy($self->{_backup_directory}.$attachment->{'sha1_filename'}, $directory."/".$attachment->{'filename'}) or die "Copy failed";
     }
     return $html;
 }
