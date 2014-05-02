@@ -1,6 +1,7 @@
 div {border:2px solid;border-color:transparent;
 border-radius:25px;}
-video {max-width:400px;}
+video {max-width:90%;}
+img {max-width:90%; max-height:90%;}
 .title_header{font-size:24px;padding:10px;}
 .received{margin-bottom:10px;background-color:#dddddd; text-align:left; margin-right:40px;padding-left:10px;padding-right:10px;}
 .sent{margin-bottom:10px;margin-left:40px;text-align:right;background-color:#66CCCC;padding-left:10px;padding-right:10px;}
