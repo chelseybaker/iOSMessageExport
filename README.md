@@ -9,6 +9,7 @@ Notes
 * Images and videos are visible within the message threads, but all other content is linked. 
 * Files are overwritten without checking to see if one already exists. 
 * If you get an error about the DateTime module, please see this CPAN article on installing modules: http://www.cpan.org/modules/INSTALL.html
+* This does not support group texts. It just adds the text sent from a user to that user's thread with you. This is basically a bug, but I haven't figured out how to do group texts yet. 
 
 Basic steps: 
 
