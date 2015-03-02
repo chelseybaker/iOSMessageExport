@@ -98,6 +98,16 @@ sub _process_mms {
     mkdir $directory unless -d $directory;
     my $html = "";
     if ((defined $self->{_attachments}->{$attachmentID}) && (my $attachment = $self->{_attachments}->{$attachmentID})){
+        if (-e $directory."/".$attachment->{'filename'}) {
+          my $filename = $attachment->{'filename'};
+          my $name = substr($filename, 0, rindex($filename, '.'));
+          my $extension = substr($filename, rindex($filename, '.') + 1);
+          my $suffix = 1;
+          while (-e $directory."/".$name.$suffix.".".$extension) {
+            $suffix++;
+          }
+          $attachment->{'filename'} = $name.$suffix.".".$extension;
+        }
         copy($self->{_backup_directory}.$attachment->{'sha1_filename'}, $directory."/".$attachment->{'filename'}) or "Copy failed for file ".$self->{_backup_directory}.$attachment->{'sha1_filename'}."\n";
         if ($attachment->{'mime_type'} =~ /^image/) {
             $html = qq|<img src="|."$date/".$attachment->{'filename'}.qq|"/>|;
