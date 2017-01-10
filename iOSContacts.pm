@@ -13,7 +13,7 @@ sub new
     my ($class, $params) = @_;
     my $self = {
         _backup_directory => $params->{backup_directory},
-        _contacts_db_filename => '31bb7ba8914766d4ba40d6dfb6113c8b614be442',
+        _contacts_db_filename => '31/31bb7ba8914766d4ba40d6dfb6113c8b614be442',
         _contacts_db => undef,
         _contacts => undef
     };
