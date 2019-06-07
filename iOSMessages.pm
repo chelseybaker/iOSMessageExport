@@ -65,15 +65,15 @@ sub _generate_messages_hash {
                 ELSE "Unknown"
             END as Type,
             CASE
-                WHEN date > 0 then TIME(date + 978307200, 'unixepoch', 'localtime')
+                WHEN date > 0 then TIME(date / 1000000000 + 978307200, 'unixepoch', 'localtime')
                 ELSE NULL
             END as Time,
             CASE
-                WHEN date > 0 THEN strftime('%Y%m%d', date + 978307200, 'unixepoch', 'localtime')
+                WHEN date > 0 THEN strftime('%Y%m%d', date / 1000000000 + 978307200, 'unixepoch', 'localtime')
                 ELSE NULL
             END as Date,
             CASE
-                WHEN date > 0 THEN date + 978307200
+                WHEN date > 0 THEN date / 1000000000 + 978307200
                 ELSE NULL
             END as Epoch,
             text as Text,
