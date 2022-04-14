@@ -1,5 +1,7 @@
 iOSMessageExport
 ================
+⚠️ This library is no longer maintained and has been archived. Thank you for the contributions!
+
 This is not exactly the best way to use Perl. However, I wanted to create it as simple and readable as I possibly could so that others would be able to modify the code to better suit them. Also, if you are not a programmer, you may find this difficult. You can email me for help but if you need something more user friendly, there's a lot of paid apps out there that are more elegant :) 
 
 
